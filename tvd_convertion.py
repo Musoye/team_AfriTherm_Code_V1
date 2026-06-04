@@ -222,34 +222,3 @@ def print_summary(df):
         print("All depth_tvd_m values successfully filled.")
     else:
         print("WARNING: some values still missing — check the output file.")
-
-
-if __name__ == "__main__":
-    print("=" * 65)
-    print("  TVD CONVERSION PIPELINE")
-    print("  Geothermal Challenge — Utrecht Rotliegend Reservoir")
-    print("=" * 65)
-
-    print("\n[Step 1] Loading well path survey tables...")
-    well_paths = load_well_paths(WELL_PATH_FILE)
-    for name, wp in well_paths.items():
-        print(f"  {name}: {len(wp)} survey stations | "
-              f"AH range {wp['Depth (m)'].max():.0f} m | "
-              f"TVD range {wp['TVD (m)'].max():.0f} m | "
-              f"max deviation {wp['Depth (m)'].max() - wp['TVD (m)'].max():.0f} m")
-
-    print("\n[Step 2] Converting Slochteren AH boundaries to TVD...")
-    tvd_bounds = get_slochteren_tvd_bounds(LITHO_FILE, well_paths)
-    for w, b in tvd_bounds.items():
-        print(f"  {w}: AH {b['ah_top']:.1f}-{b['ah_base']:.1f} m → "
-              f"TVD {b['tvd_top']:.1f}-{b['tvd_base']:.1f} m  "
-              f"[correction: {b['correction_m']:.1f} m]")
-
-    print("\n[Step 3] Filling depth_tvd_m in target_lithologies.csv...")
-    df_out = fill_tvd_in_csv(CSV_FILE, tvd_bounds, OUTPUT_FILE)
-
-    print("[Step 4] Summary of corrected data:")
-    print_summary(df_out)
-
-    print(f"\nOutput saved → {OUTPUT_FILE}")
-    print("Next step: run power_calculation.py on this corrected file.")
