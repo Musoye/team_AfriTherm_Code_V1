@@ -13,34 +13,7 @@ This script automates the entire pipeline AND calls the Claude AI API
 to generate a plain-English interpretation of the results — the kind
 of summary you would write in your technical report.
 
-WHY THIS IS THE BONUS (layman version)
-----------------------------------------
-Imagine hiring an expert consultant who reads all your data, runs all
-the calculations, and then writes you a one-page summary in plain English.
-This script does that automatically. That is the "AI-assisted workflow"
-the bonus challenge asks for.
-
-YOUR COMPUTER ENGINEERING ADVANTAGE
--------------------------------------
-Geologists on other teams know the geology deeply but may not be
-comfortable calling AI APIs or building automation pipelines.
-This is your edge — the geology is handled by the data,
-and you write the code that ties it all together.
-
-HOW TO RUN
------------
-    pip install anthropic pandas numpy openpyxl
-    python bonus_ai_workflow.py
-
-Requires: All four data files in the same folder
-Output:   ai_generated_report.txt  (AI-written summary of findings)
-         pipeline_results.csv     (all computed numbers)
-
-NOTE ON API KEY
----------------
-The Anthropic API key is handled automatically when running inside Claude.
-If running on your own machine, set your key as an environment variable:
-    export ANTHROPIC_API_KEY="your-key-here"
+export ANTHROPIC_API_KEY="your-key-here"
 """
 
 import os
@@ -48,7 +21,6 @@ import json
 import pandas as pd
 import numpy as np
 
-# ── Try importing anthropic; guide user if not installed ─────────────────────
 try:
     import anthropic
     ANTHROPIC_AVAILABLE = True
@@ -58,9 +30,6 @@ except ImportError:
     print("      The pipeline will still run; only the AI summary will be skipped.\n")
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# STEP 1 — FULL PIPELINE (condenses all three scripts into one flow)
-# ══════════════════════════════════════════════════════════════════════════════
 
 def run_full_pipeline(
     thermogis_file   = "ThermoGIS_Data.xlsx",
@@ -76,7 +45,6 @@ def run_full_pipeline(
     print("STEP 1/3 — Loading and processing well data")
     print("─" * 60)
 
-    # ── TVD correction (from tvd_conversion.py logic) ────────────────────
     xl_wp   = pd.ExcelFile(well_path_file)
     xl_lith = pd.ExcelFile(litho_file)
 
@@ -134,7 +102,6 @@ def run_full_pipeline(
         print(f"  {sheet}: {temp}°C | flow P50={well_results[sheet]['flow_p50_m3h']:.0f} m³/h "
               f"| power P50={power['P50']:.1f} MW")
 
-    # ── System design numbers (from surface_system_design.py logic) ───────
     print("\n─" * 60)
     print("STEP 3/3 — Computing surface system design and LCoE")
     print("─" * 60)
@@ -179,9 +146,6 @@ def run_full_pipeline(
     }
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# STEP 2 — AI SUMMARY (calls Claude API)
-# ══════════════════════════════════════════════════════════════════════════════
 
 def generate_ai_summary(pipeline_results):
     """
@@ -247,10 +211,6 @@ COMPUTED RESULTS:
     return summary
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# STEP 3 — SAVE FULL PIPELINE RESULTS
-# ══════════════════════════════════════════════════════════════════════════════
-
 def save_pipeline_results(results):
     """Save all pipeline results to a single CSV for the report appendix."""
     rows = []
@@ -274,5 +234,3 @@ def save_pipeline_results(results):
     df = pd.DataFrame(rows, columns=["Category", "Well/Component", "Parameter", "Value"])
     df.to_csv("pipeline_results.csv", index=False)
     print("\nFull results saved → pipeline_results.csv")
-
-

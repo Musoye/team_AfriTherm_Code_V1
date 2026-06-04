@@ -19,34 +19,20 @@ THE FOUR COMPONENTS DESIGNED HERE
 3. Thermal Storage — stores heat/cold to handle peak demand hours
 4. Hybrid backup   — solar thermal top-up for extreme winter peaks
 
-WHY THIS ORDER?
----------------
-You always design from the demand backwards:
-  What does the neighbourhood need? (10 MW heat, 5 MW cool)
-  → What can geology supply directly? (8.4 MW heat, 0 MW cool)
-  → What equipment fills the gap? (heat pump, chiller)
-  → How do you handle peak hours cheaply? (thermal storage)
-  → What is the total cost per unit of energy? (LCoE)
+What does the neighbourhood need? (10 MW heat, 5 MW cool)
+→ What can geology supply directly? (8.4 MW heat, 0 MW cool)
+→ What equipment fills the gap? (heat pump, chiller)
+→ How do you handle peak hours cheaply? (thermal storage)
+→ What is the total cost per unit of energy? (LCoE)
 
-HOW TO RUN
------------
-    python surface_system_design.py
-
-No input files needed — all parameters are built in with sources cited.
 Output: printed design report + surface_system_design.csv
 """
 
 import math
 
-# ══════════════════════════════════════════════════════════════════════════════
-# DEMAND AND SUPPLY INPUTS (from Challenge 1 results)
-# ══════════════════════════════════════════════════════════════════════════════
-
-# What the neighbourhood needs (from the challenge brief)
 HEATING_DEMAND_MW   = 10.0   # MW — minimum heating target
 COOLING_DEMAND_MW   =  5.0   # MW — minimum cooling target
 
-# What geothermal can supply (from power_calculation.py — Challenge 1)
 GEO_SUPPLY_P90_MW   =  2.2   # MW pessimistic
 GEO_SUPPLY_P50_MW   =  8.4   # MW most likely  ← design around this
 GEO_SUPPLY_P10_MW   = 31.0   # MW optimistic

@@ -2,8 +2,6 @@
 Challenge 1 — Geothermal Power Calculation
 ============================================
 
-WHAT THIS SCRIPT DOES
-----------------------
 Reads the ThermoGIS reservoir data for all four wells and calculates:
   - How much hot water each well can produce (flow rate)
   - How much heating power (MW) that translates to
@@ -28,14 +26,10 @@ Where:
 
 WHY INJECTION TEMPERATURE MATTERS
 -----------------------------------
-You pump hot water up, extract its heat, then pump the cooled water back down.
-You can't extract ALL the heat — you must reinject at some minimum temperature
+We pump hot water up, extract its heat, then pump the cooled water back down.
+We can't extract ALL the heat — we must reinject at some minimum temperature
 to keep the water liquid and to avoid damaging the reservoir. 30°C is the
 standard assumption for Dutch low-enthalpy geothermal systems.
-
-HOW TO RUN
------------
-    python power_calculation.py
 
 Reads:  ThermoGIS_Data.xlsx  (in the same folder)
 Output: printed report + geothermal_assessment.csv
@@ -44,18 +38,16 @@ Output: printed report + geothermal_assessment.csv
 import pandas as pd
 import numpy as np
 
-# ── File path ─────────────────────────────────────────────────────────────────
 THERMOGIS_FILE = "ThermoGIS_Data.xlsx"
 OUTPUT_CSV     = "geothermal_assessment.csv"
 
-# ── Physical constants ────────────────────────────────────────────────────────
 WATER_DENSITY      = 1000    # kg/m³ — mass of 1 cubic metre of water
 SPECIFIC_HEAT      = 4186    # J/(kg·°C) — energy needed to heat 1 kg of water by 1°C
 INJECTION_TEMP_C   = 30      # °C — temperature at which cooled water is reinjected
 SECONDS_PER_HOUR   = 3600    # conversion factor: 1 hour = 3600 seconds
 MW_CONVERSION      = 1e6     # 1 MW = 1,000,000 W
 
-# ── Demand targets from the challenge brief ───────────────────────────────────
+
 HEATING_TARGET_MW  = 10.0    # MW — minimum heating the neighbourhood needs
 COOLING_TARGET_MW  =  5.0    # MW — minimum cooling the neighbourhood needs
 
@@ -66,10 +58,6 @@ COOLING_TARGET_MW  =  5.0    # MW — minimum cooling the neighbourhood needs
 # COP of 3.5–4.5 is realistic. We use 4.0 as our base case.
 HEAT_PUMP_COP      = 4.0
 
-
-# ══════════════════════════════════════════════════════════════════════════════
-# STEP 1 — Load ThermoGIS data
-# ══════════════════════════════════════════════════════════════════════════════
 
 def load_thermogis(filepath):
     """
@@ -99,13 +87,11 @@ def load_thermogis(filepath):
     for sheet in xl.sheet_names:
         df = pd.read_excel(xl, sheet_name=sheet, header=None)
 
-        # Find the header row (the row that contains "Property")
         header_row = df[df.iloc[:, 0] == "Property"].index[0]
         df.columns = df.iloc[header_row]
         df = df.iloc[header_row + 1:].reset_index(drop=True)
         df.columns = ["Property", "Unit", "P90", "P50", "P10"]
 
-        # Build a clean dict for this well
         well_data = {}
         for _, row in df.iterrows():
             prop = str(row["Property"]).strip()
@@ -127,10 +113,6 @@ def _to_float(val):
     except (ValueError, TypeError):
         return 0.0
 
-
-# ══════════════════════════════════════════════════════════════════════════════
-# STEP 2 — Calculate thermal power from first principles
-# ══════════════════════════════════════════════════════════════════════════════
 
 def calculate_thermal_power(flow_rate_m3h, reservoir_temp_c,
                              injection_temp_c=INJECTION_TEMP_C):
@@ -173,10 +155,6 @@ def calculate_thermal_power(flow_rate_m3h, reservoir_temp_c,
 
     return round(power_MW, 2)
 
-
-# ══════════════════════════════════════════════════════════════════════════════
-# STEP 3 — Assess each well across P90 / P50 / P10
-# ══════════════════════════════════════════════════════════════════════════════
 
 def assess_wells(wells_data):
     """
@@ -231,10 +209,6 @@ def assess_wells(wells_data):
 
     return results
 
-
-# ══════════════════════════════════════════════════════════════════════════════
-# STEP 4 — Combine wells and check against target
-# ══════════════════════════════════════════════════════════════════════════════
 
 def combined_analysis(results):
     """
@@ -341,10 +315,6 @@ def combined_analysis(results):
 
     return df, totals
 
-
-# ══════════════════════════════════════════════════════════════════════════════
-# STEP 5 — Save results to CSV
-# ══════════════════════════════════════════════════════════════════════════════
 
 def save_results(df, output_path):
     """

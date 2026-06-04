@@ -14,12 +14,6 @@ or power calculation. The error if you skip this:
   - BLT-01 Slochteren formation: 61 m shallower
   - JUT-01 / EVD-01: small corrections (~5 m)
 
-HOW IT WORKS (layman version)
-------------------------------
-The Well_Path_Data.xlsx contains a survey table for each well — think of it
-as a GPS log of the drill bit. For every measured length of pipe, it records
-how deep straight-down (TVD) the bit actually is. We use those pairs as a
-lookup table and interpolate for any depth in between.
 
 OUTPUT FILES
 ------------
@@ -31,16 +25,12 @@ OUTPUT FILES
 import pandas as pd
 import numpy as np
 
-# ── File paths (edit these to match your folder) ──────────────────────────────
 WELL_PATH_FILE  = "Well_Path_Data.xlsx"
 LITHO_FILE      = "Lithostratigraphic_Data.xlsx"
 CSV_FILE        = "target_lithologies.csv"
 OUTPUT_FILE     = "target_lithologies_tvd_corrected.csv"
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# STEP 1 — Load the well path lookup tables
-# ══════════════════════════════════════════════════════════════════════════════
 
 def load_well_paths(filepath):
     """
@@ -64,10 +54,6 @@ def load_well_paths(filepath):
         well_paths[sheet] = df
     return well_paths
 
-
-# ══════════════════════════════════════════════════════════════════════════════
-# STEP 2 — The core conversion function: AH depth → TVD
-# ══════════════════════════════════════════════════════════════════════════════
 
 def ah_to_tvd(ah_depth, well_path_df):
     """
@@ -103,10 +89,6 @@ def ah_to_tvd(ah_depth, well_path_df):
     return np.interp(ah_depth, ah_known, tvd_known)
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# STEP 3 — Get the correct TVD formation boundaries from lithostratigraphy
-# ══════════════════════════════════════════════════════════════════════════════
-
 def get_slochteren_tvd_bounds(litho_file, well_paths):
     """
     Read the Slochteren formation top and base for each well from the
@@ -133,20 +115,16 @@ def get_slochteren_tvd_bounds(litho_file, well_paths):
 
     for well in ["BLT-01", "JUT-01", "EVD-01", "PKP-01"]:
         lith = pd.read_excel(xl, sheet_name=well)
-        col  = lith.columns[0]  # first column is the formation name
+        col  = lith.columns[0] 
 
-        # Find the Slochteren Formation row (our target reservoir)
         sloch_rows = lith[lith[col].str.contains("Slochteren Formation", na=False)]
         if sloch_rows.empty:
             print(f"  WARNING: Slochteren not found for {well}")
             continue
-
-        # Take the first Slochteren occurrence (shallowest)
         sloch    = sloch_rows.iloc[0]
         ah_top   = float(sloch["Top (m)"])
         ah_base  = float(sloch["Bottom (m)"])
 
-        # Convert AH → TVD using the well path table
         wp = well_paths[well]
         tvd_top  = float(ah_to_tvd(ah_top,  wp))
         tvd_base = float(ah_to_tvd(ah_base, wp))
@@ -160,11 +138,6 @@ def get_slochteren_tvd_bounds(litho_file, well_paths):
         }
 
     return bounds
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# STEP 4 — Fill depth_tvd_m in the CSV using corrected TVD bounds
-# ══════════════════════════════════════════════════════════════════════════════
 
 def fill_tvd_in_csv(csv_path, tvd_bounds, output_path):
     """
@@ -189,8 +162,6 @@ def fill_tvd_in_csv(csv_path, tvd_bounds, output_path):
         n_rows = mask.sum()
         if n_rows == 0:
             continue
-
-        # Assign evenly-spaced TVD values from corrected top to corrected base
         df.loc[mask, "depth_tvd_m"]         = np.linspace(b["tvd_top"], b["tvd_base"], n_rows)
         df.loc[mask, "formation_top_tvd"]    = b["tvd_top"]
         df.loc[mask, "formation_base_tvd"]   = b["tvd_base"]
@@ -217,11 +188,6 @@ def fill_tvd_in_csv(csv_path, tvd_bounds, output_path):
 
     df.to_csv(output_path, index=False)
     return df
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# STEP 5 — Sanity checks and summary table
-# ══════════════════════════════════════════════════════════════════════════════
 
 def print_summary(df):
     """
@@ -257,10 +223,6 @@ def print_summary(df):
     else:
         print("WARNING: some values still missing — check the output file.")
 
-
-# ══════════════════════════════════════════════════════════════════════════════
-# MAIN
-# ══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     print("=" * 65)
