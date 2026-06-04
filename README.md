@@ -210,7 +210,7 @@ Well_Path_Data.xlsx ──┐
 Lithostratigraphic  ──┼──► TVD correction ──► power calculation ──► system design
 ThermoGIS_Data.xlsx ──┘                                                    │
                                                                             ▼
-                                                               Claude API (claude-sonnet-4-6)
+                                                               Google Gemini API (gemini-2.5-pro)
                                                                             │
                                                                             ▼
                                                                ai_generated_report.txt
