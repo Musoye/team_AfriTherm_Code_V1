@@ -1,61 +1,19 @@
-"""
-Challenge 1 — Geothermal Power Calculation
-============================================
-
-Reads the ThermoGIS reservoir data for all four wells and calculates:
-  - How much hot water each well can produce (flow rate)
-  - How much heating power (MW) that translates to
-  - The uncertainty range: pessimistic (P90), likely (P50), optimistic (P10)
-  - Whether the combined output meets the 10 MW heating target
-  - What gap remains and how a heat pump can bridge it
-
-THE CORE FORMULA (layman version)
------------------------------------
-Power = how fast water flows × how hot it is × how much heat water carries
-
-More precisely:
-  Power (W) = flow (m³/s) × density (kg/m³) × specific heat (J/kg·°C) × ΔT (°C)
-  Power (MW) = Power (W) / 1,000,000
-
-Where:
-  - flow rate comes from ThermoGIS (m³/h → divide by 3600 to get m³/s)
-  - density of water ≈ 1000 kg/m³ (slightly less for hot brine, but close enough)
-  - specific heat of water = 4186 J/kg·°C (a physical constant — always this value)
-  - ΔT = reservoir temperature minus the temperature you reinject the water at
-         (we assume injection at 30°C — standard for Dutch geothermal systems)
-
-WHY INJECTION TEMPERATURE MATTERS
------------------------------------
-We pump hot water up, extract its heat, then pump the cooled water back down.
-We can't extract ALL the heat — we must reinject at some minimum temperature
-to keep the water liquid and to avoid damaging the reservoir. 30°C is the
-standard assumption for Dutch low-enthalpy geothermal systems.
-
-Reads:  ThermoGIS_Data.xlsx  (in the same folder)
-Output: printed report + geothermal_assessment.csv
-"""
-
 import pandas as pd
 import numpy as np
 
 THERMOGIS_FILE = "ThermoGIS_Data.xlsx"
 OUTPUT_CSV     = "geothermal_assessment.csv"
 
-WATER_DENSITY      = 1000    # kg/m³ — mass of 1 cubic metre of water
-SPECIFIC_HEAT      = 4186    # J/(kg·°C) — energy needed to heat 1 kg of water by 1°C
-INJECTION_TEMP_C   = 30      # °C — temperature at which cooled water is reinjected
-SECONDS_PER_HOUR   = 3600    # conversion factor: 1 hour = 3600 seconds
-MW_CONVERSION      = 1e6     # 1 MW = 1,000,000 W
+WATER_DENSITY      = 1000    
+SPECIFIC_HEAT      = 4186  
+INJECTION_TEMP_C   = 30      
+SECONDS_PER_HOUR   = 3600   
+MW_CONVERSION      = 1e6   
 
 
-HEATING_TARGET_MW  = 10.0    # MW — minimum heating the neighbourhood needs
-COOLING_TARGET_MW  =  5.0    # MW — minimum cooling the neighbourhood needs
+HEATING_TARGET_MW  = 10.0   
+COOLING_TARGET_MW  =  5.0  
 
-# ── Heat pump assumptions (for bridging the gap) ─────────────────────────────
-# COP = Coefficient of Performance
-# A COP of 4 means: put in 1 MW of electricity, get 4 MW of heat out
-# For a heat pump working between 30°C geothermal source and 60°C supply:
-# COP of 3.5–4.5 is realistic. We use 4.0 as our base case.
 HEAT_PUMP_COP      = 4.0
 
 

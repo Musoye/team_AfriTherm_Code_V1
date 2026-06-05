@@ -1,32 +1,4 @@
-"""
-Challenge 2 — Surface System Design + LCoE Calculation
-========================================================
 
-WHAT THIS SCRIPT DOES
-----------------------
-Takes the 8.4 MW geothermal output from Challenge 1 and designs the
-complete surface system needed to deliver:
-  - 10 MW of heating to the neighbourhood
-  -  5 MW of cooling to the neighbourhood
-
-Then calculates the Levelized Cost of Energy (LCoE) — the average
-cost per unit of heat delivered over the system's lifetime.
-
-THE FOUR COMPONENTS DESIGNED HERE
------------------------------------
-1. Heat Pump       — boosts geothermal heat to meet the 1.6 MW gap
-2. Chiller         — provides the 5 MW cooling demand in summer
-3. Thermal Storage — stores heat/cold to handle peak demand hours
-4. Hybrid backup   — solar thermal top-up for extreme winter peaks
-
-What does the neighbourhood need? (10 MW heat, 5 MW cool)
-→ What can geology supply directly? (8.4 MW heat, 0 MW cool)
-→ What equipment fills the gap? (heat pump, chiller)
-→ How do you handle peak hours cheaply? (thermal storage)
-→ What is the total cost per unit of energy? (LCoE)
-
-Output: printed design report + surface_system_design.csv
-"""
 
 import math
 
@@ -47,30 +19,7 @@ GEO_SUPPLY_MW       = GEO_SUPPLY_P50_MW
 HEATING_GAP_MW      = max(0, HEATING_DEMAND_MW - GEO_SUPPLY_MW)   # = 1.6 MW
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# COMPONENT 1 — HEAT PUMP
-# ══════════════════════════════════════════════════════════════════════════════
 
-# PROBLEM THIS SOLVES
-# --------------------
-# Geothermal delivers 8.4 MW but we need 10 MW. The 1.6 MW gap must come
-# from somewhere. We could drill another well, but that costs millions.
-# A heat pump is far cheaper and faster to install.
-
-# WHY A HEAT PUMP WORKS HERE (layman version)
-# --------------------------------------------
-# A heat pump is like a reverse fridge. A fridge takes heat OUT of your
-# food and dumps it behind (that's why the back of your fridge is warm).
-# A heat pump takes heat from the geothermal water (even though it's
-# already been partially cooled to ~40°C after extraction) and pumps it
-# UP to ~70°C — hot enough to heat buildings via radiators or floor heating.
-# The magic: it uses electricity to MOVE heat, not CREATE it. That's why
-# for 1 MW of electricity in, you can get 4 MW of heat out.
-
-# COP = Coefficient of Performance = heat_out / electricity_in
-# For a water-to-water heat pump working 40°C source → 70°C supply:
-# COP of 3.5–4.5 is standard (source: IEA Heat Pump Technology roadmap)
-# We use 4.0 as our base case (conservative-to-mid estimate)
 
 HEAT_PUMP_COP           = 4.0
 HEAT_PUMP_OUTPUT_MW     = HEATING_GAP_MW                          # = 1.6 MW
@@ -85,67 +34,16 @@ HEAT_PUMP_P90_OUTPUT_MW     = HEATING_DEMAND_MW - GEO_SUPPLY_P90_MW  # 7.8 MW
 HEAT_PUMP_P90_ELEC_INPUT_MW = HEAT_PUMP_P90_OUTPUT_MW / HEAT_PUMP_COP
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# COMPONENT 2 — CHILLER (for the 5 MW cooling demand)
-# ══════════════════════════════════════════════════════════════════════════════
-
-# PROBLEM THIS SOLVES
-# --------------------
-# In summer, the neighbourhood needs 5 MW of cooling (air conditioning,
-# ventilation). Geothermal by itself only produces heat — it doesn't
-# cool anything. We need to design a cooling system.
-
-# WHY THE GEOTHERMAL RETURN WATER IS PERFECT FOR COOLING (layman version)
-# -------------------------------------------------------------------------
-# Here is the clever part: after we extract heat from the geothermal water,
-# the water is cooled back down to ~30°C before we reinject it underground.
-# That 30°C water is COLD compared to a 25°C summer building interior.
-# So in summer we reverse the direction: instead of using the underground
-# heat to warm buildings, we use the cool injection water to absorb heat
-# FROM buildings. The building gets cooler, the injection water gets a
-# little warmer — but it's still cold enough to go back underground.
-# This is called "free cooling" — it costs almost no extra energy.
-
-# For peak cooling demand beyond what free cooling can handle, we add an
-# absorption chiller — a device that uses heat (from the geothermal source)
-# to drive a cooling cycle. No compressor needed, no extra electricity.
 
 # Cooling system design
 COOLING_FREE_COOLING_MW    = 3.0   # MW — direct free cooling via injection loop
 COOLING_CHILLER_MW         = 2.0   # MW — absorption chiller covers the rest
 COOLING_TOTAL_MW           = COOLING_FREE_COOLING_MW + COOLING_CHILLER_MW  # = 5 MW
 
-# Absorption chiller COP (heat input to cooling output)
-# Source: typical absorption chiller COP = 0.6–0.8 for single-effect machines
 CHILLER_COP                = 0.7
-CHILLER_HEAT_INPUT_MW      = COOLING_CHILLER_MW / CHILLER_COP   # heat needed to drive it
+CHILLER_HEAT_INPUT_MW      = COOLING_CHILLER_MW / CHILLER_COP  
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# COMPONENT 3 — THERMAL STORAGE TANK
-# ══════════════════════════════════════════════════════════════════════════════
-
-# PROBLEM THIS SOLVES
-# --------------------
-# A neighbourhood doesn't use the same amount of heat all day.
-# At 3am everyone is asleep — demand is maybe 3 MW.
-# At 7am everyone showers — demand spikes to 12 MW.
-# Without storage, you'd need to size your entire system for the 12 MW peak.
-# That means bigger wells, bigger pumps, bigger pipes — all costing more money.
-# With storage, you run the system at a steady ~8.4 MW all day, store the
-# excess overnight as hot water in a big insulated tank, and release it
-# during the morning peak. This is called "peak shaving."
-
-# WHY THIS DIRECTLY IMPROVES YOUR LCoE (layman version)
-# -------------------------------------------------------
-# LCoE = total cost over system lifetime / total energy delivered
-# Thermal storage increases the denominator (more energy delivered per year
-# because the system runs more hours at higher efficiency) without much
-# increasing the numerator (a storage tank is cheap vs a bigger well).
-# So LCoE goes down. Cheaper energy = better project.
-
-# Storage sizing rule: store enough for 4 hours of average demand
-# Average demand = (peak + off-peak) / 2 ≈ 7 MW × 4 hours
 STORAGE_HOURS           = 4       # hours of storage capacity
 AVERAGE_DEMAND_MW       = 7.0     # MW — average across the day
 STORAGE_ENERGY_MWH      = AVERAGE_DEMAND_MW * STORAGE_HOURS   # = 28 MWh
@@ -161,59 +59,14 @@ storage_energy_J        = STORAGE_ENERGY_MWH * 3600 * 1e6  # convert MWh → Jou
 storage_mass_kg         = storage_energy_J / (SPECIFIC_HEAT_J_KGK * TANK_DELTA_T_C)
 STORAGE_VOLUME_M3       = round(storage_mass_kg / WATER_DENSITY_KGM3)  # cubic metres
 
-# Standard hot water storage tanks for district heating come in
-# 1,000–10,000 m³. Our calculated size fits this range.
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# COMPONENT 4 — SOLAR THERMAL BACKUP
-# ══════════════════════════════════════════════════════════════════════════════
-
-# PROBLEM THIS SOLVES
-# --------------------
-# In extreme cold winters (P90 scenario), geothermal alone gives 2.2 MW.
-# Even with the heat pump at full power, you might be short during
-# the coldest few days of the year. Solar thermal provides a low-cost
-# backup for exactly these peak winter moments.
-
-# WHY SOLAR THERMAL (not solar PV)?
-# -----------------------------------
-# Solar PV makes electricity. Solar thermal makes heat directly by
-# heating water in roof-mounted collectors. For a district heating
-# system that already moves hot water around, solar thermal is more
-# efficient — you skip the electricity conversion step entirely.
-# In the Netherlands, solar thermal contributes most in spring/autumn
-# (not peak winter, ironically) but the storage tank means you can
-# pre-charge it from autumn sunshine for winter use.
-
-SOLAR_THERMAL_PEAK_MW   = 2.0    # MW peak output in good conditions
-SOLAR_THERMAL_AREA_M2   = 2000   # m² of collectors needed (at ~1 kW/m² irradiance)
-# Note: Netherlands average irradiance ~1000 kWh/m²/year
-# 2000 m² × 1000 kWh/m²/year × 50% efficiency = ~1000 MWh/year solar contribution
+SOLAR_THERMAL_PEAK_MW   = 2.0 
+SOLAR_THERMAL_AREA_M2   = 2000
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# LCOE CALCULATION
-# ══════════════════════════════════════════════════════════════════════════════
 
-# WHAT IS LCoE? (layman version)
-# --------------------------------
-# LCoE = "if I divide all the money this system will ever cost by all the
-#         energy it will ever produce, what is the cost per unit of energy?"
-#
-# It lets you compare: is geothermal cheaper than gas heating?
-# Is it cheaper than all-electric heat pumps?
-# Lower LCoE = better deal for the neighbourhood.
-#
-# Formula:
-#   LCoE (€/MWh) = (Capital cost × annual cost factor + annual O&M cost)
-#                  / annual energy produced (MWh)
-
-# ── Capital costs (CAPEX) ────────────────────────────────────────────────────
-# Source: TNO Geothermal Cost Study 2022 / IEA Geothermal Power report
-# These are representative Dutch numbers. Replace with your Excel model values.
-
-CAPEX_DRILLING_EUR          = 8_000_000   # €8M per doublet (production + injection well)
+CAPEX_DRILLING_EUR          = 8_000_000 
 CAPEX_SURFACE_PLANT_EUR     = 3_000_000   # €3M for pipes, heat exchangers, pumps
 CAPEX_HEAT_PUMP_EUR         =   400_000   # €400k for 1.6 MW heat pump
 CAPEX_CHILLER_EUR           =   300_000   # €300k for 2 MW absorption chiller
@@ -228,12 +81,9 @@ CAPEX_TOTAL_EUR = (
     CAPEX_SOLAR_THERMAL_EUR
 )
 
-# ── Annual operating costs (OPEX) ────────────────────────────────────────────
-# O&M typically 2–3% of CAPEX per year for geothermal district heating
 OPEX_FRACTION               = 0.025
 OPEX_ANNUAL_EUR             = CAPEX_TOTAL_EUR * OPEX_FRACTION
 
-# Electricity cost for heat pump operation
 ELECTRICITY_PRICE_EUR_MWH   = 120       # €/MWh — Dutch industrial electricity price 2024
 HEAT_PUMP_HOURS_PER_YEAR    = 5000      # hours/year at partial load
 HEAT_PUMP_ELEC_ANNUAL_MWH   = HEAT_PUMP_ELEC_INPUT_MW * HEAT_PUMP_HOURS_PER_YEAR
@@ -245,34 +95,22 @@ OPEX_TOTAL_EUR              = OPEX_ANNUAL_EUR + HEAT_PUMP_ELEC_COST_EUR
 DISCOUNT_RATE               = 0.05    # 5% — standard for public infrastructure
 PROJECT_LIFETIME_YEARS      = 30      # years — typical geothermal project life
 
-# Capital Recovery Factor (CRF): converts lump-sum CAPEX into annual payments
-# CRF = r(1+r)^n / ((1+r)^n - 1)  where r = discount rate, n = lifetime
 r = DISCOUNT_RATE
 n = PROJECT_LIFETIME_YEARS
 CRF = (r * (1 + r)**n) / ((1 + r)**n - 1)
 ANNUAL_CAPEX_EUR = CAPEX_TOTAL_EUR * CRF
 
-# ── Annual energy produced ────────────────────────────────────────────────────
-# Full load hours: how many hours per year the system operates at capacity
-# Dutch district heating: ~4000 hours/year for heating, ~1500 for cooling
 HEATING_FULL_LOAD_HOURS     = 4000    # hours/year
 COOLING_FULL_LOAD_HOURS     = 1500    # hours/year
 ANNUAL_HEATING_MWH          = HEATING_DEMAND_MW  * HEATING_FULL_LOAD_HOURS
 ANNUAL_COOLING_MWH          = COOLING_DEMAND_MW  * COOLING_FULL_LOAD_HOURS
 ANNUAL_TOTAL_MWH            = ANNUAL_HEATING_MWH + ANNUAL_COOLING_MWH
 
-# ── LCoE calculation ──────────────────────────────────────────────────────────
 LCOE_EUR_PER_MWH = (ANNUAL_CAPEX_EUR + OPEX_TOTAL_EUR) / ANNUAL_TOTAL_MWH
 
-# Benchmark: natural gas district heating LCoE ≈ €60–80/MWh (2024, incl. carbon tax)
-# All-electric heat pump district heating LCoE ≈ €90–130/MWh
 GAS_BENCHMARK_EUR_MWH       = 70
 ELECTRIC_BENCHMARK_EUR_MWH  = 110
 
-
-# ══════════════════════════════════════════════════════════════════════════════
-# PRINT THE FULL DESIGN REPORT
-# ══════════════════════════════════════════════════════════════════════════════
 
 def print_design_report():
     print("=" * 65)

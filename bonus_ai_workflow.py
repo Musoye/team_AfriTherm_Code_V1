@@ -1,37 +1,15 @@
-"""
-Bonus Challenge — AI-Assisted Geothermal Design Workflow
-========================================================
-
-PROBLEM THIS SOLVES
--------------------
-Right now, running the full analysis (TVD correction → power calculation
-→ system design → LCoE) requires manually running multiple scripts and
-reading through pages of output.
-
-This script automates the entire geothermal assessment pipeline and uses
-Google Gemini to generate a professional report-ready interpretation of
-the results.
-
-Setup:
-    pip install pandas numpy openpyxl google-genai
-
-Environment Variable:
-    export GEMINI_API_KEY="your-api-key-here"
-"""
-
 import os
 import json
 import pandas as pd
 import numpy as np
 
 try:
-    from google import genai
-    GEMINI_AVAILABLE = True
+    from groq import Groq
+    GROQ_AVAILABLE = True
 except ImportError:
-    GEMINI_AVAILABLE = False
-    print("NOTE: 'google-genai' package not installed.")
-    print("Run: pip install google-genai")
-    print("The pipeline will still run; only the AI summary will be skipped.\n")
+    GROQ_AVAILABLE = False
+    print("NOTE: 'groq' package not installed.")
+    print("Run: pip install groq")
 
 
 def run_full_pipeline(
@@ -279,28 +257,25 @@ def run_full_pipeline(
 
 
 def generate_ai_summary(pipeline_results):
-    """
-    Generate a professional report summary using Gemini.
-    """
 
-    if not GEMINI_AVAILABLE:
+    if not GROQ_AVAILABLE:
         print(
             "\nSkipping AI summary — "
-            "google-genai package not installed."
+            "groq package not installed."
         )
         return None
 
-    api_key = os.getenv("GEMINI_API_KEY")
+    api_key = os.getenv("GROQ_API_KEY")
 
     if not api_key:
         print(
             "\nSkipping AI summary — "
-            "GEMINI_API_KEY not found."
+            "GROQ_API_KEY not found."
         )
         return None
 
     print("\n" + "─" * 60)
-    print("BONUS — Calling Gemini API for AI-generated summary")
+    print("BONUS — Calling Groq API for AI-generated summary")
     print("─" * 60)
 
     results_json = json.dumps(
@@ -334,16 +309,23 @@ COMPUTED RESULTS:
 
     try:
 
-        client = genai.Client(
+        client = Groq(
             api_key=api_key
         )
 
-        response = client.models.generate_content(
-            model="gemini-2.5-pro",
-            contents=prompt,
+        response = client.chat.completions.create(
+            model="openai/gpt-oss-120b",
+            messages=[
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
+            temperature=1,
+            max_completion_tokens=1000
         )
 
-        summary = response.text
+        summary = response.choices[0].message.content
 
         print("\nAI-GENERATED REPORT SUMMARY:")
         print("─" * 60)
@@ -361,7 +343,7 @@ COMPUTED RESULTS:
             )
 
             f.write(
-                "Generated using Gemini 2.5 Pro\n"
+                "Generated using Groq Llama 3.3 70B Versatile\n"
             )
 
             f.write(
@@ -379,11 +361,10 @@ COMPUTED RESULTS:
     except Exception as e:
 
         print(
-            f"\nGemini API error: {e}"
+            f"\nGroq API error: {e}"
         )
 
         return None
-
 
 def save_pipeline_results(results):
     """

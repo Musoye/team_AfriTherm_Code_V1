@@ -1,27 +1,3 @@
-"""
-TVD Conversion for Geothermal Challenge
-========================================
-
-PROBLEM THIS SOLVES
--------------------
-All four wells are deviated (drilled at an angle). Raw depth values in the
-lithostratigraphic data are Along-Hole (AH) depth — the length of drill pipe,
-NOT the real depth underground.
-
-Converting to True Vertical Depth (TVD) is MANDATORY before any temperature
-or power calculation. The error if you skip this:
-  - PKP-01 Slochteren formation: 323 m shallower than AH suggests
-  - BLT-01 Slochteren formation: 61 m shallower
-  - JUT-01 / EVD-01: small corrections (~5 m)
-
-
-OUTPUT FILES
-------------
-- target_lithologies_tvd_corrected.csv
-    Same as the input, with depth_tvd_m correctly filled using TVD
-    (not AH) depths for the Slochteren formation boundaries.
-"""
-
 import pandas as pd
 import numpy as np
 
