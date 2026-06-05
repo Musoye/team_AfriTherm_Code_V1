@@ -218,7 +218,7 @@ ThermoGIS_Data.xlsx ──┘                                                   
 
 **Reads:** `Well_Path_Data.xlsx`, `Lithostratigraphic_Data.xlsx`, `ThermoGIS_Data.xlsx`  
 **Writes:** `pipeline_results.csv`, `ai_generated_report.txt`  
-**Requires:** `ANTHROPIC_API_KEY` environment variable
+**Requires:** `GEMINI_API_KEY` environment variable
 
 ---
 
