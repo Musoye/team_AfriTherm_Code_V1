@@ -35,36 +35,142 @@ team_AfriTherm_Code_V1/
 
 ## Installation
 
-```bash
-pip install pandas numpy openpyxl anthropic
-```
-
-Place all four data files in the same directory as the scripts before running.
 
 ---
-
 ## How to Run — Step by Step
 
-Run the scripts in this exact order. Each one feeds into the next.
+This project has been consolidated into a single Jupyter Notebook:
 
-```bash
-python tvd_conversion.py          # Step 0 — must run first
-python power_calculation.py       # Challenge 1
-python surface_system_design.py   # Challenge 2
-python bonus_ai_workflow.py       # Bonus (needs ANTHROPIC_API_KEY)
+```text
+team_AfriTherm_run.ipynb
 ```
 
-For the bonus script, set your API key first:
+### 1. Install Required Packages
+
+Open a terminal and run:
 
 ```bash
-# Mac / Linux
-export ANTHROPIC_API_KEY="your-key-here"
-
-# Windows
-set ANTHROPIC_API_KEY=your-key-here
+pip install pandas numpy openpyxl groq
 ```
 
 ---
+
+### 2. Generate a Groq API Key
+
+1. Go to https://console.groq.com
+2. Sign in or create an account.
+3. Navigate to **API Keys**.
+4. Click **Create API Key**.
+5. Copy the generated key.
+
+---
+
+### 3. Open the Notebook
+
+Launch Jupyter Notebook or Jupyter Lab:
+
+```bash
+jupyter notebook
+```
+
+or
+
+```bash
+jupyter lab
+```
+
+Then open:
+
+```text
+team_AfriTherm_run.ipynb
+```
+
+---
+
+### 4. Enter Your Groq API Key
+
+Locate **Cell 10** in the notebook.
+
+Paste your API key into the following variable:
+
+```python
+GROQ_API_KEY = "paste_your_groq_api_key_here"
+```
+
+Example:
+
+```python
+GROQ_API_KEY = "gsk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+```
+
+---
+
+### 5. Run the Notebook
+
+From the notebook menu:
+
+```text
+Kernel → Restart & Run All
+```
+
+or execute each cell sequentially from top to bottom.
+
+---
+
+### 6. Generated Outputs
+
+After successful execution, the notebook will generate:
+
+```text
+pipeline_results.csv
+ai_generated_report.txt
+```
+
+These files contain:
+
+* Geological assessment results
+* TVD corrections
+* Thermal power calculations
+* Surface system design calculations
+* LCoE analysis
+* AI-generated technical report summary using Groq
+
+---
+# Results Directory
+
+All generated outputs from the geothermal assessment workflow are stored in the **`results/`** folder.
+
+## Output Files
+
+The `results/` directory contains the following files:
+
+```text
+results/
+├── target_lithologies_tvd_corrected.csv
+├── geothermal_assessment.csv
+├── surface_system_design.csv
+└── ai_generated_report.txt
+```
+
+### File Descriptions
+
+#### `target_lithologies_tvd_corrected.csv`
+
+Contains the corrected True Vertical Depth (TVD) values for the target lithologies derived from the well path and lithostratigraphic datasets.
+
+#### `geothermal_assessment.csv`
+
+Contains the geothermal reservoir assessment results, including well temperatures, flow rates, permeability values, and calculated thermal power outputs for the P90, P50, and P10 scenarios.
+
+#### `surface_system_design.csv`
+
+Contains the proposed surface energy system design parameters, including geothermal heat supply, heat pump sizing, cooling capacity, storage requirements, and economic metrics.
+
+#### `ai_generated_report.txt`
+
+Contains the AI-generated technical summary of the geothermal assessment and surface system design. This report is generated using the Groq API and incorporates the computed results from the analysis pipeline.
+
+
 
 ## Script 1 — `tvd_conversion.py`
 
@@ -210,7 +316,7 @@ Well_Path_Data.xlsx ──┐
 Lithostratigraphic  ──┼──► TVD correction ──► power calculation ──► system design
 ThermoGIS_Data.xlsx ──┘                                                    │
                                                                             ▼
-                                                               Google Gemini API (gemini-2.5-pro)
+                                                               Groq (openai/gpt-oss-120b)
                                                                             │
                                                                             ▼
                                                                ai_generated_report.txt
@@ -218,7 +324,7 @@ ThermoGIS_Data.xlsx ──┘                                                   
 
 **Reads:** `Well_Path_Data.xlsx`, `Lithostratigraphic_Data.xlsx`, `ThermoGIS_Data.xlsx`  
 **Writes:** `pipeline_results.csv`, `ai_generated_report.txt`  
-**Requires:** `GEMINI_API_KEY` environment variable
+**Requires:** `GROQ_API_KEY` environment variable
 
 ---
 

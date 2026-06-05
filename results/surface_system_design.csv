@@ -1,0 +1,17 @@
+Component,Parameter,Value,Unit
+Geothermal,Supply P50,8.4,MW
+Heat Pump,Output,1.5999999999999996,MW
+Heat Pump,Electricity input,0.4,MW
+Heat Pump,COP,4.0,-
+Chiller,Free cooling,3.0,MW
+Chiller,Absorption cooling,2.0,MW
+Chiller,Total cooling,5.0,MW
+Thermal Storage,Capacity,28.0,MWh
+Thermal Storage,Volume,803,m3
+Solar Thermal,Peak output,2.0,MW
+Solar Thermal,Area,2000,m2
+Economics,Total CAPEX,12.8,M EUR
+Economics,Annual OPEX,560,k EUR/yr
+Economics,Annual energy,47500.0,MWh/yr
+Economics,LCoE,29.3,EUR/MWh
+Economics,Project lifetime,30,years

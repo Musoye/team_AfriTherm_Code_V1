@@ -321,8 +321,9 @@ COMPUTED RESULTS:
                     "content": prompt
                 }
             ],
-            temperature=1,
-            max_completion_tokens=1000
+            temperature=0.3,
+            top_p=0.9,
+            max_completion_tokens=1024
         )
 
         summary = response.choices[0].message.content
